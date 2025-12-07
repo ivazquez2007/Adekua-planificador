@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-// CORRECCIÓN: Solo importamos los iconos EXACTOS que se usan en el diseño.
 import { Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2 } from 'lucide-react';
 
 // --- TIPOS DE DATOS ---
@@ -57,12 +56,12 @@ const INITIAL_WORKS_REAL: WorkOrder[] = [
 ];
 
 const INITIAL_TEAMS_REAL: TeamAvailability = {
-  '2025-12-08': [], // FIESTA
-  '2025-12-09': ['Natan + Fiti', 'Maite + Victor'],
-  '2025-12-10': ['Fiti + Victor', 'Natan + Maite', 'Jon Epis Voith'],
+  '2025-12-08': [], 
+  '2025-12-09': ['Natan + Fiti', 'Maite + Victor'], 
+  '2025-12-10': ['Fiti + Victor', 'Natan + Maite', 'Jon Epis Voith'], 
   '2025-12-11': ['Fiti + Victor', 'Natan + Maite', 'Jon + Indacces', 'Maite + Victor'], 
   '2025-12-12': ['Fiti + Victor', 'Natan + Maite'],
-  '2025-12-13': ['Equipo Sábado'],
+  '2025-12-13': ['Equipo Sábado'], 
   '2025-12-14': ['Equipo Domingo'],
   '2026-01-02': ['Victor + Mikel', 'Natan + Nacor'],
   '2026-01-07': ['Victor + Mikel', 'Natan + Nacor'],
@@ -91,8 +90,8 @@ const getWeekDates = (baseDate: Date) => {
 const getNextDayString = (dateStr: string): string => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + 1);
-    if (date.getDay() === 6) date.setDate(date.getDate() + 2);
-    if (date.getDay() === 0) date.setDate(date.getDate() + 1);
+    if (date.getDay() === 6) date.setDate(date.getDate() + 2); 
+    if (date.getDay() === 0) date.setDate(date.getDate() + 1); 
     return date.toISOString().split('T')[0];
 };
 
@@ -114,7 +113,9 @@ export default function InstallPlanApp() {
   const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 8)); 
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [draggedWork, setDraggedWork] = useState<WorkOrder | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [showOverloadModal, setShowOverloadModal] = useState(false);
   const [pendingDrop, setPendingDrop] = useState<{work: WorkOrder, date: string, team: string, availableHours: number} | null>(null);
 
@@ -530,8 +531,6 @@ export default function InstallPlanApp() {
             </div>
         )}
 
-      </div>
-
       {showTeamModal && (
         <TeamManagerModal 
           onClose={() => setShowTeamModal(false)} 
@@ -544,7 +543,15 @@ export default function InstallPlanApp() {
   );
 }
 
-function TeamManagerModal({ onClose, teams, setTeams }: { onClose: () => void, teams: TeamAvailability, setTeams: (t: TeamAvailability) => void }) {
+// --- SUB-COMPONENTES DEFINIDOS FUERA DE LA FUNCIÓN PRINCIPAL ---
+
+interface TeamManagerModalProps {
+  onClose: () => void;
+  teams: TeamAvailability;
+  setTeams: React.Dispatch<React.SetStateAction<TeamAvailability>>;
+}
+
+function TeamManagerModal({ onClose, teams, setTeams }: TeamManagerModalProps) {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     const [selectedInstallers, setSelectedInstallers] = useState<string[]>([]);
