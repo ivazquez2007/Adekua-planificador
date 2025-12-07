@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2 } from 'lucide-react';
 
-// --- 1. DEFINICIÓN DE TIPOS E INTERFACES (Al principio para evitar errores) ---
+// --- 1. DEFINICIÓN DE TIPOS E INTERFACES ---
 
 type WorkStatus = 'pending' | 'scheduled' | 'completed';
 type WorkType = 'Montaje (M)' | 'Revisión (R)' | 'Otro';
@@ -17,7 +17,7 @@ interface WorkOrder {
   dateExpiration?: string;
   totalDays: number;
   currentDay: number;
-  fractionOfDay: number; // 0.1 a 1.0 (1.0 = 8 horas)
+  fractionOfDay: number;
   status: WorkStatus;
   scheduledDate?: string;
   assignedTeam?: string;
@@ -103,8 +103,7 @@ const getNextDayString = (dateStr: string): string => {
     return date.toISOString().split('T')[0];
 };
 
-// --- 4. COMPONENTE AUXILIAR (MODAL) ---
-// Definido antes del componente principal para evitar problemas de hoisting/scope
+// --- 4. COMPONENTE AUXILIAR: MODAL DE EQUIPOS ---
 
 function TeamManagerModal({ onClose, teams, setTeams }: TeamManagerModalProps) {
     const [startDate, setStartDate] = useState('');
@@ -366,7 +365,7 @@ export default function InstallPlanApp() {
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar: Obras Pendientes */}
       <div className="w-72 bg-white border-r border-slate-200 flex flex-col shadow-lg z-20 shrink-0">
         <div className="p-4 border-b border-slate-100 bg-slate-50">
            <h2 className="font-bold text-slate-700 flex items-center gap-2 text-sm uppercase tracking-wide">
