@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+// CORRECCIÓN: Solo importamos los iconos EXACTOS que se usan en el diseño.
 import { Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2 } from 'lucide-react';
 
 // --- TIPOS DE DATOS ---
@@ -23,65 +24,46 @@ interface WorkOrder {
   assignedTeam?: string;
   type: WorkType;
   isSplit?: boolean;
-  isFixed?: boolean; // Indica si la tarea es inamovible
+  isFixed?: boolean;
 }
 
 interface TeamAvailability {
-  [date: string]: string[]; // Ejemplo: "2025-12-09": ["Natan + Fiti", "Maite + Victor"]
+  [date: string]: string[];
 }
 
 const INSTALLERS = ["Victor", "Mikel", "Natan", "Nacor", "Maite", "Jonan", "Fiti", "Tenka", "Eneko"];
 
-// --- DATOS INICIALES (Basados en tus PDF: Diciembre 2025 y Enero 2026) ---
+// --- DATOS INICIALES ---
 const INITIAL_WORKS_REAL: WorkOrder[] = [
   // --- DICIEMBRE 2025 ---
-  
-  // Semana 1 (Previa) - TABAKALERA ES FIJA
   { id: 'm_tabakalera', code: 'M 990 B/25', client: 'TABAKALERA', address: 'Pza Cigarreras', city: 'Donostia', coordinates: { x: 80, y: 50 }, dateAccepted: '2025-11-03', totalDays: 4, currentDay: 3, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-01', assignedTeam: 'Jonan + Victor', type: 'Montaje (M)', isFixed: true },
-  
   { id: 'm_indulmazaga', code: 'M (CISA)', client: 'INDULMAZAGA', address: 'Soraluce', city: 'Soraluce', coordinates: { x: 30, y: 40 }, dateAccepted: '2025-11-13', totalDays: 1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-01', assignedTeam: 'Nacor + Natan', type: 'Montaje (M)', isFixed: false },
   
   // --- SEMANA CRÍTICA DEL 8 AL 14 DE DICIEMBRE ---
-  
-  // Martes 09/12
   { id: 'm_jma', code: 'M 1745/25', client: 'JMA-ARRASATE', address: 'Arrasate', city: 'Arrasate', coordinates: { x: 35, y: 45 }, dateAccepted: '2025-10-22', totalDays: 1.5, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-09', assignedTeam: 'Natan + Fiti', type: 'Montaje (M)', isFixed: false },
   { id: 'r_sobrinos', code: 'R R1/R25', client: 'SOBRINOS MANUEL CAMARA', address: 'Pasajes', city: 'Pasajes', coordinates: { x: 85, y: 55 }, dateAccepted: '2025-10-31', dateExpiration: '2025-12-03', totalDays: 2.1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-09', assignedTeam: 'Maite + Victor', type: 'Revisión (R)', isFixed: false },
-
-  // Miércoles 10/12
   { id: 'm_campezo', code: 'M 1888/25', client: 'CAMPEZO-CASERIO EGIÑA', address: 'Bilbao', city: 'Bilbao', coordinates: { x: 20, y: 30 }, dateAccepted: '2025-10-28', totalDays: 1, currentDay: 1, fractionOfDay: 0.4, status: 'scheduled', scheduledDate: '2025-12-10', assignedTeam: 'Natan + Maite', type: 'Montaje (M)', isFixed: false },
-  // Cita Específica VOITH (según notas, hay que confirmar fecha exacta -> Asumimos FIJA una vez agendada)
   { id: 'r_voith', code: 'R 1775/25', client: 'VOITH EPIS', address: 'Ibarra', city: 'Ibarra', coordinates: { x: 60, y: 60 }, dateAccepted: '2025-11-21', totalDays: 1.8, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-10', assignedTeam: 'Fiti + Victor', type: 'Revisión (R)', isFixed: true }, 
-
-  // Jueves 11/12
   { id: 'm_tabaka_final', code: 'M 990 B/25', client: 'TABAKALERA', address: 'Donostia', city: 'Donostia', coordinates: { x: 80, y: 50 }, dateAccepted: '2025-11-03', totalDays: 4, currentDay: 4, fractionOfDay: 0.4, status: 'scheduled', scheduledDate: '2025-12-11', assignedTeam: 'Natan + Maite', type: 'Montaje (M)', isFixed: true },
   { id: 'm_zaballa', code: 'M 1718/25', client: 'EJ-CARCEL ZABALLA', address: 'Nanclares', city: 'Araba', coordinates: { x: 30, y: 70 }, dateAccepted: '2025-11-18', totalDays: 1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-11', assignedTeam: 'Jon + Indacces', type: 'Montaje (M)', isFixed: false },
-
-  // Viernes 12/12
   { id: 'm_ama_guada', code: 'M 311 C/23', client: 'AMA GUADALUPEKOA', address: 'Hondarribia', city: 'Hondarribia', coordinates: { x: 90, y: 55 }, dateAccepted: '2025-10-03', totalDays: 1, currentDay: 1, fractionOfDay: 0.8, status: 'scheduled', scheduledDate: '2025-12-12', assignedTeam: 'Natan + Maite', type: 'Montaje (M)', isFixed: false },
   { id: 'm_villabona', code: 'M 1172/25', client: 'AYTO VILLABONA', address: 'Villabona', city: 'Villabona', coordinates: { x: 65, y: 55 }, dateAccepted: '2025-09-30', totalDays: 1.6, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-12', assignedTeam: 'Fiti + Victor', type: 'Montaje (M)', isFixed: false },
-
-  // Domingo 14/12 - RAILSIDER (Domingo sí o sí por producción -> FIJA)
   { id: 'm_railsider', code: 'M 860/25', client: 'RAILSIDER-NAVE JUNDIZ', address: 'Jundiz', city: 'Vitoria', coordinates: { x: 40, y: 80 }, dateAccepted: '2025-10-10', totalDays: 0.5, currentDay: 1, fractionOfDay: 0.5, status: 'scheduled', scheduledDate: '2025-12-14', assignedTeam: 'Equipo Domingo', type: 'Montaje (M)', isFixed: true },
 
   // --- ENERO 2026 ---
-  // CAF División IV (Revisión Fija Anual)
   { id: 'r_caf_div4', code: 'CAF DIV IV', client: 'CAF REVISIÓN ANUAL', address: 'Beasain', city: 'Beasain', coordinates: { x: 50, y: 50 }, dateAccepted: '2025-12-01', totalDays: 1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2026-01-02', assignedTeam: 'Victor + Mikel', type: 'Revisión (R)', isFixed: true },
-  
-  // Obra Larga Enero: Uni Deusto
   { id: 'm_deusto_1', code: 'M 1184 C/24', client: 'UNI.DEUSTO-EDIF. ORKESTRA', address: 'Bilbao', city: 'Bilbao', coordinates: { x: 20, y: 30 }, dateAccepted: '2025-07-21', totalDays: 5, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2026-01-07', assignedTeam: 'Victor + Mikel', type: 'Montaje (M)', isFixed: false },
   { id: 'm_deusto_2', code: 'M 1184 C/24', client: 'UNI.DEUSTO-EDIF. ORKESTRA', address: 'Bilbao', city: 'Bilbao', coordinates: { x: 20, y: 30 }, dateAccepted: '2025-07-21', totalDays: 5, currentDay: 2, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2026-01-08', assignedTeam: 'Victor + Mikel', type: 'Montaje (M)', isFixed: false },
 ];
 
 const INITIAL_TEAMS_REAL: TeamAvailability = {
-  // Semana conflictiva Dic 2025
   '2025-12-08': [], // FIESTA
-  '2025-12-09': ['Natan + Fiti', 'Maite + Victor'], // Mikel baja
-  '2025-12-10': ['Fiti + Victor', 'Natan + Maite', 'Jon Epis Voith'], // Cambios pareja
+  '2025-12-09': ['Natan + Fiti', 'Maite + Victor'],
+  '2025-12-10': ['Fiti + Victor', 'Natan + Maite', 'Jon Epis Voith'],
   '2025-12-11': ['Fiti + Victor', 'Natan + Maite', 'Jon + Indacces', 'Maite + Victor'], 
   '2025-12-12': ['Fiti + Victor', 'Natan + Maite'],
-  '2025-12-13': ['Equipo Sábado'], // Especial fin de semana
+  '2025-12-13': ['Equipo Sábado'],
   '2025-12-14': ['Equipo Domingo'],
-  // Enero 2026
   '2026-01-02': ['Victor + Mikel', 'Natan + Nacor'],
   '2026-01-07': ['Victor + Mikel', 'Natan + Nacor'],
   '2026-01-08': ['Victor + Mikel', 'Natan + Nacor'],
@@ -94,7 +76,7 @@ const fractionToHours = (frac: number) => (frac * 8).toFixed(1);
 const getWeekDates = (baseDate: Date) => {
   const date = new Date(baseDate);
   const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Empezar en Lunes
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
   const monday = new Date(date.setDate(diff));
   
   const week = [];
@@ -109,13 +91,12 @@ const getWeekDates = (baseDate: Date) => {
 const getNextDayString = (dateStr: string): string => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + 1);
-    if (date.getDay() === 6) date.setDate(date.getDate() + 2); // Salta Sábado -> Lunes
-    if (date.getDay() === 0) date.setDate(date.getDate() + 1); // Salta Domingo -> Lunes
+    if (date.getDay() === 6) date.setDate(date.getDate() + 2);
+    if (date.getDay() === 0) date.setDate(date.getDate() + 1);
     return date.toISOString().split('T')[0];
 };
 
 export default function InstallPlanApp() {
-  // --- ESTADO CON PERSISTENCIA ---
   const [works, setWorks] = useState<WorkOrder[]>(() => {
       try {
           const saved = localStorage.getItem('installPlan_works');
@@ -130,21 +111,15 @@ export default function InstallPlanApp() {
       } catch(e) { return INITIAL_TEAMS_REAL; }
   });
 
-  // Fecha inicial: 8 Dic 2025 para ver la semana con más actividad
   const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 8)); 
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [draggedWork, setDraggedWork] = useState<WorkOrder | null>(null);
-  
-  // Referencia para input de archivo
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Estados Modal Sobrecarga
   const [showOverloadModal, setShowOverloadModal] = useState(false);
   const [pendingDrop, setPendingDrop] = useState<{work: WorkOrder, date: string, team: string, availableHours: number} | null>(null);
 
   const weekDates = getWeekDates(currentDate);
 
-  // --- EFECTOS (AUTO-GUARDADO) ---
   useEffect(() => {
       localStorage.setItem('installPlan_works', JSON.stringify(works));
   }, [works]);
@@ -153,7 +128,6 @@ export default function InstallPlanApp() {
       localStorage.setItem('installPlan_teams', JSON.stringify(teams));
   }, [teams]);
 
-  // --- FUNCIONES DE SISTEMA ---
   const handleExport = () => {
       const data = { works, teams, date: new Date().toISOString() };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -193,8 +167,6 @@ export default function InstallPlanApp() {
       }
   };
 
-  // --- LÓGICA DE NEGOCIO ---
-
   const getTeamLoad = (dateStr: string, teamName: string) => {
     const teamWorks = works.filter(w => w.scheduledDate === dateStr && w.assignedTeam === teamName);
     return teamWorks.reduce((acc, w) => acc + (w.fractionOfDay * 8), 0);
@@ -206,13 +178,13 @@ export default function InstallPlanApp() {
 
   const handleDropAttempt = (dateStr: string, teamName: string) => {
     if (!draggedWork) return;
-    if (draggedWork.isFixed && draggedWork.status === 'scheduled') return; // No mover si es fija
+    if (draggedWork.isFixed && draggedWork.status === 'scheduled') return;
 
     const currentLoad = getTeamLoad(dateStr, teamName);
     const workHours = draggedWork.fractionOfDay * 8;
     const totalLoad = currentLoad + workHours;
 
-    if (totalLoad > 8.1) { // Pequeño margen
+    if (totalLoad > 8.1) {
         const availableHours = Math.max(0, 8 - currentLoad);
         setPendingDrop({
             work: draggedWork,
@@ -243,7 +215,6 @@ export default function InstallPlanApp() {
     const remainingHours = totalHours - availableHours;
     
     if (availableHours <= 0.5) {
-        // Si queda muy poco, mover todo al día siguiente
         const nextDate = getNextDayString(date);
         const newWorks = works.map(w => {
             if (w.id === work.id) {
@@ -253,7 +224,6 @@ export default function InstallPlanApp() {
         });
         setWorks(newWorks);
     } else {
-        // Dividir tarea
         const fractionToday = availableHours / 8;
         const fractionTomorrow = remainingHours / 8;
         const nextDate = getNextDayString(date);
@@ -308,8 +278,6 @@ export default function InstallPlanApp() {
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
-      
-      {/* Sidebar: Obras Pendientes */}
       <div className="w-72 bg-white border-r border-slate-200 flex flex-col shadow-lg z-20 shrink-0">
         <div className="p-4 border-b border-slate-100 bg-slate-50">
            <h2 className="font-bold text-slate-700 flex items-center gap-2 text-sm uppercase tracking-wide">
@@ -348,7 +316,6 @@ export default function InstallPlanApp() {
           )}
         </div>
 
-        {/* Panel de Control de Datos */}
         <div className="p-3 bg-slate-50 border-t border-slate-200">
             <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">Datos y Backup</p>
             <div className="grid grid-cols-3 gap-1">
@@ -369,10 +336,7 @@ export default function InstallPlanApp() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 relative">
-        
-        {/* Header de Navegación */}
         <header className="bg-white border-b border-slate-200 px-4 py-2 flex items-center justify-between shadow-sm z-10 shrink-0 h-14">
            <div className="flex items-center gap-4">
               <div className="flex items-center bg-slate-100 rounded-lg p-0.5">
@@ -405,10 +369,8 @@ export default function InstallPlanApp() {
            </div>
         </header>
 
-        {/* --- TABLERO SEMANAL DINÁMICO --- */}
         <div className="flex-1 overflow-x-auto overflow-y-hidden bg-slate-200 p-2">
             <div className="h-full flex gap-2 min-w-max">
-                
                 {weekDates.map((date, dayIdx) => {
                     const dateStr = date.toISOString().split('T')[0];
                     const dailyTeams = teams[dateStr] || [];
@@ -417,8 +379,6 @@ export default function InstallPlanApp() {
 
                     return (
                         <div key={dateStr} className={`flex flex-col rounded-lg overflow-hidden border border-slate-300 shadow-sm ${isWeekend ? 'w-48 bg-slate-100' : 'w-80 lg:w-96 bg-white'}`}>
-                            
-                            {/* Cabecera del Día */}
                             <div className={`p-2 border-b border-slate-200 flex justify-between items-center ${isToday ? 'bg-blue-50' : 'bg-slate-50'}`}>
                                 <div className="flex flex-col">
                                     <span className={`text-xs font-bold uppercase ${isToday ? 'text-blue-700' : 'text-slate-500'}`}>
@@ -433,7 +393,6 @@ export default function InstallPlanApp() {
                                 )}
                             </div>
 
-                            {/* Cuerpo del Día (Columnas de Equipos) */}
                             <div className="flex-1 flex divide-x divide-slate-200 overflow-hidden">
                                 {dailyTeams.length > 0 ? (
                                     dailyTeams.map((teamName, teamIdx) => {
@@ -453,11 +412,8 @@ export default function InstallPlanApp() {
                                                     handleDropAttempt(dateStr, teamName);
                                                 }}
                                             >
-                                                {/* Cabecera del Equipo */}
                                                 <div className="px-2 py-1.5 border-b border-slate-100 bg-slate-50/50 flex flex-col">
                                                     <span className="text-[11px] font-bold text-slate-700 truncate" title={teamName}>{teamName}</span>
-                                                    
-                                                    {/* Barra de Carga */}
                                                     <div className="w-full h-1.5 bg-slate-200 rounded-full mt-1 overflow-hidden relative">
                                                         <div 
                                                             className={`h-full transition-all duration-300 ${isOverloaded ? 'bg-red-500' : 'bg-green-500'}`} 
@@ -469,12 +425,11 @@ export default function InstallPlanApp() {
                                                     </span>
                                                 </div>
 
-                                                {/* Zona de Tareas */}
                                                 <div className="flex-1 p-1 space-y-1 overflow-y-auto bg-slate-50/30">
                                                     {works.filter(w => w.scheduledDate === dateStr && w.assignedTeam === teamName).map(work => (
                                                         <div 
                                                             key={work.id}
-                                                            draggable={!work.isFixed} // Solo se puede arrastrar si NO es fija
+                                                            draggable={!work.isFixed} 
                                                             onDragStart={() => setDraggedWork(work)}
                                                             className={`p-1.5 rounded border shadow-sm text-xs relative group/item transition-all
                                                                 ${work.isFixed 
@@ -489,7 +444,6 @@ export default function InstallPlanApp() {
                                                                 <span className="font-bold truncate">{work.code}</span>
                                                                 <div className="flex items-center gap-1">
                                                                     {work.isSplit && <Split size={10} className="text-slate-500"/>}
-                                                                    {/* Botón Candado */}
                                                                     <button onClick={() => toggleTaskLock(work.id)} className="text-slate-400 hover:text-purple-600">
                                                                         {work.isFixed ? <Lock size={10}/> : <Unlock size={10} className="opacity-0 group-hover/item:opacity-50"/>}
                                                                     </button>
@@ -534,7 +488,6 @@ export default function InstallPlanApp() {
             </div>
         </div>
 
-        {/* MODAL OVERLOAD */}
         {showOverloadModal && pendingDrop && (
             <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
@@ -570,18 +523,8 @@ export default function InstallPlanApp() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                        <button 
-                            onClick={cancelDrop}
-                            className="py-2.5 px-4 rounded-lg border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-50"
-                        >
-                            Cancelar
-                        </button>
-                        <button 
-                            onClick={confirmSplit}
-                            className="py-2.5 px-4 rounded-lg bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-md"
-                        >
-                            Dividir Tarea
-                        </button>
+                        <button onClick={cancelDrop} className="py-2.5 px-4 rounded-lg border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-50">Cancelar</button>
+                        <button onClick={confirmSplit} className="py-2.5 px-4 rounded-lg bg-blue-600 text-white font-bold text-sm hover:bg-blue-700 shadow-md">Dividir Tarea</button>
                     </div>
                 </div>
             </div>
@@ -589,7 +532,6 @@ export default function InstallPlanApp() {
 
       </div>
 
-      {/* MODAL: GESTIÓN DE EQUIPOS */}
       {showTeamModal && (
         <TeamManagerModal 
           onClose={() => setShowTeamModal(false)} 
