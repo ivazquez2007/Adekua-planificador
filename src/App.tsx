@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Calendar as CalendarIcon, MapPin, Clock, Truck, Plus, LayoutGrid, ChevronLeft, ChevronRight, Users, UserPlus, X, FileText, Settings, AlertCircle, Check, MoreVertical, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2 } from 'lucide-react';
+import { Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2 } from 'lucide-react';
 
 // --- TIPOS DE DATOS ---
 
