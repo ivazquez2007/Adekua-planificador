@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2 } from 'lucide-react';
+import { Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, Download, Upload, Trash2, Search } from 'lucide-react';
 
 // --- 1. DEFINICIÓN DE TIPOS E INTERFACES ---
 
@@ -38,10 +38,8 @@ interface TeamManagerModalProps {
 
 const INSTALLERS = ["Victor", "Mikel", "Natan", "Nacor", "Maite", "Jonan", "Fiti", "Tenka", "Eneko"];
 
-// --- 2. UTILIDADES DE FECHA (CORRECCIÓN ZONA HORARIA) ---
+// --- 2. UTILIDADES DE FECHA ---
 
-// Esta función fuerza la fecha local como string YYYY-MM-DD
-// Evita que new Date().toISOString() devuelva el día anterior por UTC
 const getLocalISODate = (d: Date) => {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -54,7 +52,7 @@ const fractionToHours = (frac: number) => (frac * 8).toFixed(1);
 const getWeekDates = (baseDate: Date) => {
   const date = new Date(baseDate);
   const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Ajustar al lunes
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
   const monday = new Date(date.setDate(diff));
   
   const week = [];
@@ -69,14 +67,12 @@ const getWeekDates = (baseDate: Date) => {
 const getNextDayString = (dateStr: string): string => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + 1);
-    // Saltar fines de semana si es necesario (opcional)
     if (date.getDay() === 6) date.setDate(date.getDate() + 2); 
     if (date.getDay() === 0) date.setDate(date.getDate() + 1); 
     return getLocalISODate(date);
 };
 
-// --- 3. DATOS INICIALES (Placeholder) ---
-// Estos datos se sobrescribirán al cargar tu JSON completo
+// --- 3. DATOS INICIALES ---
 const INITIAL_WORKS_REAL: WorkOrder[] = []; 
 const INITIAL_TEAMS_REAL: TeamAvailability = {};
 
@@ -102,11 +98,11 @@ export default function InstallPlanApp() {
   const [draggedWork, setDraggedWork] = useState<WorkOrder | null>(null);
   const [showOverloadModal, setShowOverloadModal] = useState(false);
   const [pendingDrop, setPendingDrop] = useState<{work: WorkOrder, date: string, team: string, availableHours: number} | null>(null);
-  
+  const [selectedPendingWorkId, setSelectedPendingWorkId] = useState<string>(''); // Para el filtro del sidebar
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const weekDates = getWeekDates(currentDate);
 
-  // --- PERSISTENCIA ---
   useEffect(() => {
       localStorage.setItem('installPlan_works', JSON.stringify(works));
   }, [works]);
@@ -115,50 +111,29 @@ export default function InstallPlanApp() {
       localStorage.setItem('installPlan_teams', JSON.stringify(teams));
   }, [teams]);
 
-  // --- LÓGICA DE LIMPIEZA DE HUÉRFANOS ---
-  // Si una obra está agendada en un día SIN equipos, se mueve a Pendientes.
+  // Limpieza de obras huérfanas
   useEffect(() => {
     let hasChanges = false;
-    
     const cleanedWorks = works.map(w => {
-        // Solo verificamos obras agendadas
         if (w.status === 'scheduled' && w.scheduledDate) {
             const dailyTeams = teams[w.scheduledDate];
             const hasTeams = dailyTeams && dailyTeams.length > 0;
-            
-            // Si el día no tiene equipos o el array está vacío
             if (!hasTeams) {
                 hasChanges = true;
-                // Devolvemos la obra al estado 'pending'
-                return { 
-                    ...w, 
-                    status: 'pending', 
-                    scheduledDate: undefined, 
-                    assignedTeam: undefined 
-                } as WorkOrder;
+                return { ...w, status: 'pending', scheduledDate: undefined, assignedTeam: undefined } as WorkOrder;
             }
-            
-            // Opcional: Si el equipo asignado ya no existe en ese día
             if (w.assignedTeam && !dailyTeams.includes(w.assignedTeam)) {
                  hasChanges = true;
-                 return { 
-                    ...w, 
-                    status: 'pending', 
-                    scheduledDate: undefined, 
-                    assignedTeam: undefined 
-                } as WorkOrder;
+                 return { ...w, status: 'pending', scheduledDate: undefined, assignedTeam: undefined } as WorkOrder;
             }
         }
         return w;
     });
 
     if (hasChanges) {
-        console.log("Se han movido obras al backlog porque no tenían equipo asignado.");
         setWorks(cleanedWorks);
     }
-  }, [teams, works.length]); // Dependencias: cuando cambian equipos o cantidad de obras
-
-  // --- HANDLERS ---
+  }, [teams, works.length]);
 
   const handleExport = () => {
       const data = { works, teams, date: new Date().toISOString() };
@@ -178,17 +153,15 @@ export default function InstallPlanApp() {
           try {
               const data = JSON.parse(event.target?.result as string);
               if (data.works && data.teams) {
-                  if(window.confirm('Se van a sobrescribir los datos actuales. ¿Estás seguro?')) {
-                      // Establecemos los equipos primero
+                  if(window.confirm('Se van a sobrescribir los datos. ¿Estás seguro?')) {
                       setTeams(data.teams);
-                      // Establecemos las obras (el useEffect de limpieza correrá automáticamente después)
                       setWorks(data.works);
-                      alert('Datos cargados. Las obras en días sin equipo se han movido a pendientes.');
+                      alert('Datos cargados correctamente.');
                   }
               } else {
-                  alert('El archivo no tiene el formato correcto (faltan keys works o teams).');
+                  alert('Formato incorrecto.');
               }
-          } catch(err) { alert('Error al leer el archivo JSON. Revisa que no tenga comentarios //.'); }
+          } catch(err) { alert('Error al leer el archivo JSON.'); }
       };
       reader.readAsText(file);
       e.target.value = '';
@@ -210,8 +183,6 @@ export default function InstallPlanApp() {
       setWorks(works.map(w => w.id === workId ? { ...w, isFixed: !w.isFixed } : w));
   };
 
-  // --- DRAG AND DROP LOGIC ---
-
   const handleDropAttempt = (dateStr: string, teamName: string) => {
     if (!draggedWork) return;
     if (draggedWork.isFixed && draggedWork.status === 'scheduled') return;
@@ -220,7 +191,6 @@ export default function InstallPlanApp() {
     const workHours = draggedWork.fractionOfDay * 8;
     const totalLoad = currentLoad + workHours;
 
-    // Umbral de 8.1 horas para permitir pequeños excesos decimales, sino Modal
     if (totalLoad > 8.1) {
         const availableHours = Math.max(0, 8 - currentLoad);
         setPendingDrop({
@@ -243,6 +213,8 @@ export default function InstallPlanApp() {
           : w
       );
       setWorks(updatedWorks);
+      // Limpiar filtro si se arrastró la seleccionada
+      if (selectedPendingWorkId === work.id) setSelectedPendingWorkId('');
   };
 
   const confirmSplit = () => {
@@ -251,7 +223,6 @@ export default function InstallPlanApp() {
     const totalHours = work.fractionOfDay * 8;
     const remainingHours = totalHours - availableHours;
     
-    // Si queda muy poco tiempo (ej. < 30 mins), movemos todo al día siguiente
     if (availableHours <= 0.5) {
         const nextDate = getNextDayString(date);
         const newWorks = works.map(w => {
@@ -262,7 +233,6 @@ export default function InstallPlanApp() {
         });
         setWorks(newWorks);
     } else {
-        // Dividir tarea
         const fractionToday = availableHours / 8;
         const fractionTomorrow = remainingHours / 8;
         const nextDate = getNextDayString(date);
@@ -296,6 +266,7 @@ export default function InstallPlanApp() {
     }
     setShowOverloadModal(false);
     setPendingDrop(null);
+    if (selectedPendingWorkId === work.id) setSelectedPendingWorkId('');
   };
 
   const cancelDrop = () => {
@@ -315,25 +286,57 @@ export default function InstallPlanApp() {
     setCurrentDate(newDate);
   };
 
+  // Filtrado para el sidebar
+  const pendingWorks = works.filter(w => w.status === 'pending');
+  const visiblePendingWorks = selectedPendingWorkId 
+      ? pendingWorks.filter(w => w.id === selectedPendingWorkId)
+      : pendingWorks;
+
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
       {/* Sidebar: Obras Pendientes */}
       <div className="w-72 bg-white border-r border-slate-200 flex flex-col shadow-lg z-20 shrink-0">
-        <div className="p-4 border-b border-slate-100 bg-slate-50">
+        <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col gap-2">
            <h2 className="font-bold text-slate-700 flex items-center gap-2 text-sm uppercase tracking-wide">
              <LayoutGrid size={16} className="text-blue-600"/>
-             Pendientes (Backlog)
+             Pendientes ({pendingWorks.length})
            </h2>
+           
+           {/* DROPDOWN PARA ELEGIR OBRA */}
+           <div className="relative">
+             <select 
+               value={selectedPendingWorkId} 
+               onChange={(e) => setSelectedPendingWorkId(e.target.value)}
+               className="w-full p-2 text-xs border border-slate-300 rounded bg-white text-slate-700 focus:outline-none focus:border-blue-500"
+             >
+               <option value="">🔍 Elegir obra para mover...</option>
+               {pendingWorks.map(w => (
+                 <option key={w.id} value={w.id}>
+                   {w.code} - {w.client.substring(0, 20)}
+                 </option>
+               ))}
+             </select>
+             {selectedPendingWorkId && (
+               <button 
+                 onClick={() => setSelectedPendingWorkId('')}
+                 className="absolute right-8 top-2 text-slate-400 hover:text-slate-600"
+                 title="Limpiar filtro"
+               >
+                 <X size={12}/>
+               </button>
+             )}
+           </div>
         </div>
         
         <div className="flex-1 overflow-y-auto p-2 space-y-2 bg-slate-50">
-          {works.filter(w => w.status === 'pending').map(work => (
+          {visiblePendingWorks.map(work => (
             <div 
               key={work.id}
               draggable
               onDragStart={() => setDraggedWork(work)}
               className={`p-3 rounded border shadow-sm cursor-grab active:cursor-grabbing hover:shadow-md bg-white group relative
                 ${work.dateExpiration ? 'border-l-4 border-l-red-500' : 'border-l-4 border-l-slate-400'}
+                ${selectedPendingWorkId === work.id ? 'ring-2 ring-blue-500 bg-blue-50' : ''}
               `}
             >
               <div className="flex justify-between items-start mb-1">
@@ -351,7 +354,7 @@ export default function InstallPlanApp() {
               </div>
             </div>
           ))}
-          {works.filter(w => w.status === 'pending').length === 0 && (
+          {pendingWorks.length === 0 && (
             <div className="text-center py-10 text-slate-400 text-sm">Todo asignado</div>
           )}
         </div>
@@ -413,9 +416,7 @@ export default function InstallPlanApp() {
         <div className="flex-1 overflow-x-auto overflow-y-hidden bg-slate-200 p-2">
             <div className="h-full flex gap-2 min-w-max">
                 {weekDates.map((date) => {
-                    // USO DE getLocalISODate PARA EVITAR ERROR DE ZONA HORARIA
                     const dateStr = getLocalISODate(date);
-                    
                     const dailyTeams = teams[dateStr] || [];
                     const isToday = getLocalISODate(new Date()) === dateStr;
                     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
