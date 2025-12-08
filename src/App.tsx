@@ -312,7 +312,7 @@ export default function InstallPlanApp() {
                <option value="">🔍 Elegir obra para mover...</option>
                {pendingWorks.map(w => (
                  <option key={w.id} value={w.id}>
-                   {w.code} - {w.client.substring(0, 20)}
+                   {w.client.substring(0, 30)} ({fractionToHours(w.fractionOfDay)}h) - [{w.code}]
                  </option>
                ))}
              </select>
