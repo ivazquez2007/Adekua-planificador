@@ -38,52 +38,23 @@ interface TeamManagerModalProps {
 
 const INSTALLERS = ["Victor", "Mikel", "Natan", "Nacor", "Maite", "Jonan", "Fiti", "Tenka", "Eneko"];
 
-// --- 2. DATOS INICIALES ---
+// --- 2. UTILIDADES DE FECHA (CORRECCIÓN ZONA HORARIA) ---
 
-const INITIAL_WORKS_REAL: WorkOrder[] = [
-  // DICIEMBRE 2025
-  { id: 'm_tabakalera', code: 'M 990 B/25', client: 'TABAKALERA', address: 'Pza Cigarreras', city: 'Donostia', coordinates: { x: 80, y: 50 }, dateAccepted: '2025-11-03', totalDays: 4, currentDay: 3, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-01', assignedTeam: 'Jonan + Victor', type: 'Montaje (M)', isFixed: true },
-  { id: 'm_indulmazaga', code: 'M (CISA)', client: 'INDULMAZAGA', address: 'Soraluce', city: 'Soraluce', coordinates: { x: 30, y: 40 }, dateAccepted: '2025-11-13', totalDays: 1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-01', assignedTeam: 'Nacor + Natan', type: 'Montaje (M)', isFixed: false },
-  
-  // SEMANA CRÍTICA 8-14 DIC
-  { id: 'm_jma', code: 'M 1745/25', client: 'JMA-ARRASATE', address: 'Arrasate', city: 'Arrasate', coordinates: { x: 35, y: 45 }, dateAccepted: '2025-10-22', totalDays: 1.5, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-09', assignedTeam: 'Natan + Fiti', type: 'Montaje (M)', isFixed: false },
-  { id: 'r_sobrinos', code: 'R R1/R25', client: 'SOBRINOS MANUEL CAMARA', address: 'Pasajes', city: 'Pasajes', coordinates: { x: 85, y: 55 }, dateAccepted: '2025-10-31', dateExpiration: '2025-12-03', totalDays: 2.1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-09', assignedTeam: 'Maite + Victor', type: 'Revisión (R)', isFixed: false },
-  { id: 'm_campezo', code: 'M 1888/25', client: 'CAMPEZO-CASERIO EGIÑA', address: 'Bilbao', city: 'Bilbao', coordinates: { x: 20, y: 30 }, dateAccepted: '2025-10-28', totalDays: 1, currentDay: 1, fractionOfDay: 0.4, status: 'scheduled', scheduledDate: '2025-12-10', assignedTeam: 'Natan + Maite', type: 'Montaje (M)', isFixed: false },
-  { id: 'r_voith', code: 'R 1775/25', client: 'VOITH EPIS', address: 'Ibarra', city: 'Ibarra', coordinates: { x: 60, y: 60 }, dateAccepted: '2025-11-21', totalDays: 1.8, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-10', assignedTeam: 'Fiti + Victor', type: 'Revisión (R)', isFixed: true }, 
-  { id: 'm_tabaka_final', code: 'M 990 B/25', client: 'TABAKALERA', address: 'Donostia', city: 'Donostia', coordinates: { x: 80, y: 50 }, dateAccepted: '2025-11-03', totalDays: 4, currentDay: 4, fractionOfDay: 0.4, status: 'scheduled', scheduledDate: '2025-12-11', assignedTeam: 'Natan + Maite', type: 'Montaje (M)', isFixed: true },
-  { id: 'm_zaballa', code: 'M 1718/25', client: 'EJ-CARCEL ZABALLA', address: 'Nanclares', city: 'Araba', coordinates: { x: 30, y: 70 }, dateAccepted: '2025-11-18', totalDays: 1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-11', assignedTeam: 'Jon + Indacces', type: 'Montaje (M)', isFixed: false },
-  { id: 'm_ama_guada', code: 'M 311 C/23', client: 'AMA GUADALUPEKOA', address: 'Hondarribia', city: 'Hondarribia', coordinates: { x: 90, y: 55 }, dateAccepted: '2025-10-03', totalDays: 1, currentDay: 1, fractionOfDay: 0.8, status: 'scheduled', scheduledDate: '2025-12-12', assignedTeam: 'Natan + Maite', type: 'Montaje (M)', isFixed: false },
-  { id: 'm_villabona', code: 'M 1172/25', client: 'AYTO VILLABONA', address: 'Villabona', city: 'Villabona', coordinates: { x: 65, y: 55 }, dateAccepted: '2025-09-30', totalDays: 1.6, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2025-12-12', assignedTeam: 'Fiti + Victor', type: 'Montaje (M)', isFixed: false },
-  { id: 'm_railsider', code: 'M 860/25', client: 'RAILSIDER-NAVE JUNDIZ', address: 'Jundiz', city: 'Vitoria', coordinates: { x: 40, y: 80 }, dateAccepted: '2025-10-10', totalDays: 0.5, currentDay: 1, fractionOfDay: 0.5, status: 'scheduled', scheduledDate: '2025-12-14', assignedTeam: 'Equipo Domingo', type: 'Montaje (M)', isFixed: true },
-
-  // ENERO 2026
-  { id: 'r_caf_div4', code: 'CAF DIV IV', client: 'CAF REVISIÓN ANUAL', address: 'Beasain', city: 'Beasain', coordinates: { x: 50, y: 50 }, dateAccepted: '2025-12-01', totalDays: 1, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2026-01-02', assignedTeam: 'Victor + Mikel', type: 'Revisión (R)', isFixed: true },
-  { id: 'm_deusto_1', code: 'M 1184 C/24', client: 'UNI.DEUSTO-EDIF. ORKESTRA', address: 'Bilbao', city: 'Bilbao', coordinates: { x: 20, y: 30 }, dateAccepted: '2025-07-21', totalDays: 5, currentDay: 1, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2026-01-07', assignedTeam: 'Victor + Mikel', type: 'Montaje (M)', isFixed: false },
-  { id: 'm_deusto_2', code: 'M 1184 C/24', client: 'UNI.DEUSTO-EDIF. ORKESTRA', address: 'Bilbao', city: 'Bilbao', coordinates: { x: 20, y: 30 }, dateAccepted: '2025-07-21', totalDays: 5, currentDay: 2, fractionOfDay: 1.0, status: 'scheduled', scheduledDate: '2026-01-08', assignedTeam: 'Victor + Mikel', type: 'Montaje (M)', isFixed: false },
-];
-
-const INITIAL_TEAMS_REAL: TeamAvailability = {
-  '2025-12-08': [], 
-  '2025-12-09': ['Natan + Fiti', 'Maite + Victor'], 
-  '2025-12-10': ['Fiti + Victor', 'Natan + Maite', 'Jon Epis Voith'], 
-  '2025-12-11': ['Fiti + Victor', 'Natan + Maite', 'Jon + Indacces', 'Maite + Victor'], 
-  '2025-12-12': ['Fiti + Victor', 'Natan + Maite'],
-  '2025-12-13': ['Equipo Sábado'], 
-  '2025-12-14': ['Equipo Domingo'],
-  '2026-01-02': ['Victor + Mikel', 'Natan + Nacor'],
-  '2026-01-07': ['Victor + Mikel', 'Natan + Nacor'],
-  '2026-01-08': ['Victor + Mikel', 'Natan + Nacor'],
-  '2026-01-09': ['Victor + Mikel', 'Natan + Nacor'],
+// Esta función fuerza la fecha local como string YYYY-MM-DD
+// Evita que new Date().toISOString() devuelva el día anterior por UTC
+const getLocalISODate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
-
-// --- 3. UTILIDADES ---
 
 const fractionToHours = (frac: number) => (frac * 8).toFixed(1);
 
 const getWeekDates = (baseDate: Date) => {
   const date = new Date(baseDate);
   const day = date.getDay();
-  const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+  const diff = date.getDate() - day + (day === 0 ? -6 : 1); // Ajustar al lunes
   const monday = new Date(date.setDate(diff));
   
   const week = [];
@@ -98,10 +69,16 @@ const getWeekDates = (baseDate: Date) => {
 const getNextDayString = (dateStr: string): string => {
     const date = new Date(dateStr);
     date.setDate(date.getDate() + 1);
+    // Saltar fines de semana si es necesario (opcional)
     if (date.getDay() === 6) date.setDate(date.getDate() + 2); 
     if (date.getDay() === 0) date.setDate(date.getDate() + 1); 
-    return date.toISOString().split('T')[0];
+    return getLocalISODate(date);
 };
+
+// --- 3. DATOS INICIALES (Placeholder) ---
+// Estos datos se sobrescribirán al cargar tu JSON completo
+const INITIAL_WORKS_REAL: WorkOrder[] = []; 
+const INITIAL_TEAMS_REAL: TeamAvailability = {};
 
 // --- 4. COMPONENTE PRINCIPAL ---
 
@@ -120,17 +97,16 @@ export default function InstallPlanApp() {
       } catch(e) { return INITIAL_TEAMS_REAL; }
   });
 
-  const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 8)); 
+  const [currentDate, setCurrentDate] = useState(new Date(2025, 11, 8)); // 8 Dic 2025
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [draggedWork, setDraggedWork] = useState<WorkOrder | null>(null);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
   const [showOverloadModal, setShowOverloadModal] = useState(false);
   const [pendingDrop, setPendingDrop] = useState<{work: WorkOrder, date: string, team: string, availableHours: number} | null>(null);
-
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const weekDates = getWeekDates(currentDate);
 
+  // --- PERSISTENCIA ---
   useEffect(() => {
       localStorage.setItem('installPlan_works', JSON.stringify(works));
   }, [works]);
@@ -139,13 +115,58 @@ export default function InstallPlanApp() {
       localStorage.setItem('installPlan_teams', JSON.stringify(teams));
   }, [teams]);
 
+  // --- LÓGICA DE LIMPIEZA DE HUÉRFANOS ---
+  // Si una obra está agendada en un día SIN equipos, se mueve a Pendientes.
+  useEffect(() => {
+    let hasChanges = false;
+    
+    const cleanedWorks = works.map(w => {
+        // Solo verificamos obras agendadas
+        if (w.status === 'scheduled' && w.scheduledDate) {
+            const dailyTeams = teams[w.scheduledDate];
+            const hasTeams = dailyTeams && dailyTeams.length > 0;
+            
+            // Si el día no tiene equipos o el array está vacío
+            if (!hasTeams) {
+                hasChanges = true;
+                // Devolvemos la obra al estado 'pending'
+                return { 
+                    ...w, 
+                    status: 'pending', 
+                    scheduledDate: undefined, 
+                    assignedTeam: undefined 
+                } as WorkOrder;
+            }
+            
+            // Opcional: Si el equipo asignado ya no existe en ese día
+            if (w.assignedTeam && !dailyTeams.includes(w.assignedTeam)) {
+                 hasChanges = true;
+                 return { 
+                    ...w, 
+                    status: 'pending', 
+                    scheduledDate: undefined, 
+                    assignedTeam: undefined 
+                } as WorkOrder;
+            }
+        }
+        return w;
+    });
+
+    if (hasChanges) {
+        console.log("Se han movido obras al backlog porque no tenían equipo asignado.");
+        setWorks(cleanedWorks);
+    }
+  }, [teams, works.length]); // Dependencias: cuando cambian equipos o cantidad de obras
+
+  // --- HANDLERS ---
+
   const handleExport = () => {
       const data = { works, teams, date: new Date().toISOString() };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `InstallPlan_Backup_${new Date().toLocaleDateString().replace(/\//g, '-')}.json`;
+      a.download = `InstallPlan_Backup_${getLocalISODate(new Date())}.json`;
       a.click();
   };
 
@@ -158,23 +179,25 @@ export default function InstallPlanApp() {
               const data = JSON.parse(event.target?.result as string);
               if (data.works && data.teams) {
                   if(window.confirm('Se van a sobrescribir los datos actuales. ¿Estás seguro?')) {
-                      setWorks(data.works);
+                      // Establecemos los equipos primero
                       setTeams(data.teams);
-                      alert('Datos cargados correctamente.');
+                      // Establecemos las obras (el useEffect de limpieza correrá automáticamente después)
+                      setWorks(data.works);
+                      alert('Datos cargados. Las obras en días sin equipo se han movido a pendientes.');
                   }
               } else {
-                  alert('El archivo no tiene el formato correcto.');
+                  alert('El archivo no tiene el formato correcto (faltan keys works o teams).');
               }
-          } catch(err) { alert('Error al leer el archivo.'); }
+          } catch(err) { alert('Error al leer el archivo JSON. Revisa que no tenga comentarios //.'); }
       };
       reader.readAsText(file);
       e.target.value = '';
   };
 
   const handleReset = () => {
-      if(window.confirm('¿Borrar todo y volver a los datos de ejemplo iniciales?')) {
-          setWorks(INITIAL_WORKS_REAL);
-          setTeams(INITIAL_TEAMS_REAL);
+      if(window.confirm('¿Borrar todo?')) {
+          setWorks([]);
+          setTeams({});
       }
   };
 
@@ -187,6 +210,8 @@ export default function InstallPlanApp() {
       setWorks(works.map(w => w.id === workId ? { ...w, isFixed: !w.isFixed } : w));
   };
 
+  // --- DRAG AND DROP LOGIC ---
+
   const handleDropAttempt = (dateStr: string, teamName: string) => {
     if (!draggedWork) return;
     if (draggedWork.isFixed && draggedWork.status === 'scheduled') return;
@@ -195,6 +220,7 @@ export default function InstallPlanApp() {
     const workHours = draggedWork.fractionOfDay * 8;
     const totalLoad = currentLoad + workHours;
 
+    // Umbral de 8.1 horas para permitir pequeños excesos decimales, sino Modal
     if (totalLoad > 8.1) {
         const availableHours = Math.max(0, 8 - currentLoad);
         setPendingDrop({
@@ -225,6 +251,7 @@ export default function InstallPlanApp() {
     const totalHours = work.fractionOfDay * 8;
     const remainingHours = totalHours - availableHours;
     
+    // Si queda muy poco tiempo (ej. < 30 mins), movemos todo al día siguiente
     if (availableHours <= 0.5) {
         const nextDate = getNextDayString(date);
         const newWorks = works.map(w => {
@@ -235,6 +262,7 @@ export default function InstallPlanApp() {
         });
         setWorks(newWorks);
     } else {
+        // Dividir tarea
         const fractionToday = availableHours / 8;
         const fractionTomorrow = remainingHours / 8;
         const nextDate = getNextDayString(date);
@@ -261,7 +289,7 @@ export default function InstallPlanApp() {
             assignedTeam: team, 
             status: 'scheduled',
             isSplit: true,
-            code: `${work.code} (Parte 2)`
+            code: `${work.code} (P2)`
         };
 
         setWorks([...newWorks, splitWork]);
@@ -385,9 +413,11 @@ export default function InstallPlanApp() {
         <div className="flex-1 overflow-x-auto overflow-y-hidden bg-slate-200 p-2">
             <div className="h-full flex gap-2 min-w-max">
                 {weekDates.map((date) => {
-                    const dateStr = date.toISOString().split('T')[0];
+                    // USO DE getLocalISODate PARA EVITAR ERROR DE ZONA HORARIA
+                    const dateStr = getLocalISODate(date);
+                    
                     const dailyTeams = teams[dateStr] || [];
-                    const isToday = new Date().toDateString() === date.toDateString();
+                    const isToday = getLocalISODate(new Date()) === dateStr;
                     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
 
                     return (
@@ -578,7 +608,7 @@ function TeamManagerModal({ onClose, teams, setTeams }: TeamManagerModalProps) {
         const end = new Date(endDate);
         const newAvailability = { ...teams };
         for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            newAvailability[d.toISOString().split('T')[0]] = tempPairs;
+            newAvailability[getLocalISODate(d)] = tempPairs;
         }
         setTeams(newAvailability);
         onClose();
