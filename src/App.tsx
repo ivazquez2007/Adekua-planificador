@@ -263,7 +263,7 @@ export default function InstallPlanApp() {
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden text-slate-700">
       
-      {/* SIDEBAR: PENDIENTES */}
+      {/* SIDEBAR: PENDIENTE */}
       <div 
         className="w-80 bg-white border-r border-slate-200 flex flex-col shadow-xl z-30 shrink-0 transition-colors"
         onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add('bg-red-50'); }}
