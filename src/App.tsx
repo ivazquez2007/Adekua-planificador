@@ -103,83 +103,7 @@ const getNextDayString = (dateStr: string): string => {
     return date.toISOString().split('T')[0];
 };
 
-// --- 4. COMPONENTE AUXILIAR: MODAL DE EQUIPOS ---
-
-function TeamManagerModal({ onClose, teams, setTeams }: TeamManagerModalProps) {
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [selectedInstallers, setSelectedInstallers] = useState<string[]>([]);
-    const [tempPairs, setTempPairs] = useState<string[]>([]);
-
-    const handleAddPair = () => {
-        if (selectedInstallers.length !== 2) return alert("Selecciona 2 montadores");
-        setTempPairs([...tempPairs, `${selectedInstallers[0]} + ${selectedInstallers[1]}`]);
-        setSelectedInstallers([]);
-    };
-
-    const handleApplyTeams = () => {
-        if (!startDate || !endDate) return alert("Faltan fechas");
-        if (tempPairs.length === 0) return alert("Añade parejas");
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        const newAvailability = { ...teams };
-        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            newAvailability[d.toISOString().split('T')[0]] = tempPairs;
-        }
-        setTeams(newAvailability);
-        onClose();
-    };
-
-    const toggleInstaller = (name: string) => {
-        if (selectedInstallers.includes(name)) setSelectedInstallers(selectedInstallers.filter(n => n !== name));
-        else if (selectedInstallers.length < 2) setSelectedInstallers([...selectedInstallers, name]);
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-800">Definir Cuadrillas</h3>
-                    <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-slate-600"/></button>
-                </div>
-                <div className="p-4 overflow-y-auto space-y-4">
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div><label className="block text-xs font-bold text-slate-500 mb-1">Desde</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded p-2"/></div>
-                        <div><label className="block text-xs font-bold text-slate-500 mb-1">Hasta</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border rounded p-2"/></div>
-                    </div>
-                    
-                    <div className="border-t pt-4">
-                        <label className="block text-xs font-bold text-slate-500 mb-2">Seleccionar Pareja ({selectedInstallers.length}/2)</label>
-                        <div className="flex flex-wrap gap-2">
-                            {INSTALLERS.map(name => (
-                                <button key={name} onClick={() => toggleInstaller(name)} className={`px-2 py-1 rounded text-xs border ${selectedInstallers.includes(name) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200'}`}>{name}</button>
-                            ))}
-                        </div>
-                        <button onClick={handleAddPair} disabled={selectedInstallers.length !== 2} className="w-full mt-2 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded hover:bg-blue-100 disabled:opacity-50">Añadir Pareja</button>
-                    </div>
-
-                    <div className="border-t pt-4">
-                        <label className="block text-xs font-bold text-slate-500 mb-2">Cuadrillas a Asignar</label>
-                        <div className="space-y-1">
-                            {tempPairs.map((p, i) => (
-                                <div key={i} className="flex justify-between items-center bg-slate-50 p-2 rounded text-xs border">
-                                    <span className="font-bold">{p}</span>
-                                    <button onClick={() => setTempPairs(tempPairs.filter((_, idx) => idx !== i))} className="text-red-500"><X size={14}/></button>
-                                </div>
-                            ))}
-                            {tempPairs.length === 0 && <p className="text-xs text-slate-400 italic">Ninguna seleccionada</p>}
-                        </div>
-                    </div>
-                </div>
-                <div className="p-4 border-t bg-slate-50">
-                    <button onClick={handleApplyTeams} className="w-full py-2 bg-slate-800 text-white font-bold rounded text-sm hover:bg-slate-700">Guardar Cambios</button>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-// --- 5. COMPONENTE PRINCIPAL ---
+// --- 4. COMPONENTE PRINCIPAL ---
 
 export default function InstallPlanApp() {
   const [works, setWorks] = useState<WorkOrder[]>(() => {
@@ -629,4 +553,80 @@ export default function InstallPlanApp() {
 
     </div>
   );
+}
+
+// --- 5. COMPONENTE AUXILIAR (MODAL) ---
+
+function TeamManagerModal({ onClose, teams, setTeams }: TeamManagerModalProps) {
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [selectedInstallers, setSelectedInstallers] = useState<string[]>([]);
+    const [tempPairs, setTempPairs] = useState<string[]>([]);
+
+    const handleAddPair = () => {
+        if (selectedInstallers.length !== 2) return alert("Selecciona 2 montadores");
+        setTempPairs([...tempPairs, `${selectedInstallers[0]} + ${selectedInstallers[1]}`]);
+        setSelectedInstallers([]);
+    };
+
+    const handleApplyTeams = () => {
+        if (!startDate || !endDate) return alert("Faltan fechas");
+        if (tempPairs.length === 0) return alert("Añade parejas");
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const newAvailability = { ...teams };
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            newAvailability[d.toISOString().split('T')[0]] = tempPairs;
+        }
+        setTeams(newAvailability);
+        onClose();
+    };
+
+    const toggleInstaller = (name: string) => {
+        if (selectedInstallers.includes(name)) setSelectedInstallers(selectedInstallers.filter(n => n !== name));
+        else if (selectedInstallers.length < 2) setSelectedInstallers([...selectedInstallers, name]);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="p-4 border-b bg-slate-50 flex justify-between items-center">
+                    <h3 className="font-bold text-slate-800">Definir Cuadrillas</h3>
+                    <button onClick={onClose}><X size={20} className="text-slate-400 hover:text-slate-600"/></button>
+                </div>
+                <div className="p-4 overflow-y-auto space-y-4">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                        <div><label className="block text-xs font-bold text-slate-500 mb-1">Desde</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} className="w-full border rounded p-2"/></div>
+                        <div><label className="block text-xs font-bold text-slate-500 mb-1">Hasta</label><input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className="w-full border rounded p-2"/></div>
+                    </div>
+                    
+                    <div className="border-t pt-4">
+                        <label className="block text-xs font-bold text-slate-500 mb-2">Seleccionar Pareja ({selectedInstallers.length}/2)</label>
+                        <div className="flex flex-wrap gap-2">
+                            {INSTALLERS.map(name => (
+                                <button key={name} onClick={() => toggleInstaller(name)} className={`px-2 py-1 rounded text-xs border ${selectedInstallers.includes(name) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200'}`}>{name}</button>
+                            ))}
+                        </div>
+                        <button onClick={handleAddPair} disabled={selectedInstallers.length !== 2} className="w-full mt-2 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded hover:bg-blue-100 disabled:opacity-50">Añadir Pareja</button>
+                    </div>
+
+                    <div className="border-t pt-4">
+                        <label className="block text-xs font-bold text-slate-500 mb-2">Cuadrillas a Asignar</label>
+                        <div className="space-y-1">
+                            {tempPairs.map((p, i) => (
+                                <div key={i} className="flex justify-between items-center bg-slate-50 p-2 rounded text-xs border">
+                                    <span className="font-bold">{p}</span>
+                                    <button onClick={() => setTempPairs(tempPairs.filter((_, idx) => idx !== i))} className="text-red-500"><X size={14}/></button>
+                                </div>
+                            ))}
+                            {tempPairs.length === 0 && <p className="text-xs text-slate-400 italic">Ninguna seleccionada</p>}
+                        </div>
+                    </div>
+                </div>
+                <div className="p-4 border-t bg-slate-50">
+                    <button onClick={handleApplyTeams} className="w-full py-2 bg-slate-800 text-white font-bold rounded text-sm hover:bg-slate-700">Guardar Cambios</button>
+                </div>
+            </div>
+        </div>
+    );
 }
