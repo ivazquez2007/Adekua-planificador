@@ -17,7 +17,7 @@ interface WorkOrder {
   dateExpiration?: string;
   totalDays: number;
   currentDay: number;
-  fractionOfDay: number;
+  fractionOfDay: number; // 0.1 a 1.0 (1.0 = 8 horas)
   status: WorkStatus;
   scheduledDate?: string;
   assignedTeam?: string;
@@ -542,6 +542,8 @@ export default function InstallPlanApp() {
                 </div>
             </div>
         )}
+
+      </div> {/* Closing Main Content */}
 
       {showTeamModal && (
         <TeamManagerModal 
