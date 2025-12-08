@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Clock, MapPin, LayoutGrid, ChevronLeft, ChevronRight, Users, X, 
-  AlertCircle, Split, ArrowRightCircle, Lock, Unlock, Save, 
+  AlertCircle, Split, Lock, Unlock, Save, 
   Download, Upload, Trash2, Search, Briefcase, Calendar 
 } from 'lucide-react';
 
