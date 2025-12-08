@@ -294,7 +294,7 @@ export default function InstallPlanApp() {
 
   return (
     <div className="flex h-screen bg-slate-100 font-sans overflow-hidden">
-      {/* Sidebar: Obras Pendientes */}
+      {/* Sidebar: Obras_Pendientes */}
       <div className="w-72 bg-white border-r border-slate-200 flex flex-col shadow-lg z-20 shrink-0">
         <div className="p-4 border-b border-slate-100 bg-slate-50 flex flex-col gap-2">
            <h2 className="font-bold text-slate-700 flex items-center gap-2 text-sm uppercase tracking-wide">
