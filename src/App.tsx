@@ -17,7 +17,7 @@ interface WorkOrder {
   dateExpiration?: string;
   totalDays: number;
   currentDay: number;
-  fractionOfDay: number;
+  fractionOfDay: number; // 0.1 a 1.0 (1.0 = 8 horas)
   status: WorkStatus;
   scheduledDate?: string;
   assignedTeam?: string;
@@ -102,6 +102,8 @@ const getNextDayString = (dateStr: string): string => {
     if (date.getDay() === 0) date.setDate(date.getDate() + 1); 
     return date.toISOString().split('T')[0];
 };
+
+// --- 4. COMPONENTE PRINCIPAL ---
 
 export default function InstallPlanApp() {
   const [works, setWorks] = useState<WorkOrder[]>(() => {
@@ -224,7 +226,6 @@ export default function InstallPlanApp() {
     const remainingHours = totalHours - availableHours;
     
     if (availableHours <= 0.5) {
-        // Si queda muy poco, mover todo al día siguiente
         const nextDate = getNextDayString(date);
         const newWorks = works.map(w => {
             if (w.id === work.id) {
@@ -234,7 +235,6 @@ export default function InstallPlanApp() {
         });
         setWorks(newWorks);
     } else {
-        // Dividir tarea
         const fractionToday = availableHours / 8;
         const fractionTomorrow = remainingHours / 8;
         const nextDate = getNextDayString(date);
@@ -556,6 +556,8 @@ export default function InstallPlanApp() {
     </div>
   );
 }
+
+// --- 5. COMPONENTE AUXILIAR (MODAL) ---
 
 function TeamManagerModal({ onClose, teams, setTeams }: TeamManagerModalProps) {
     const [startDate, setStartDate] = useState('');
